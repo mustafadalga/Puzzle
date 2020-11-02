@@ -1,0 +1,34 @@
+$indigo-3:#3d5afe;
+*,*:before,*:after{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+img{
+  width: 100%;
+  max-width: 100%;
+}
+html{
+  font-size: 10px;
+}
+body{
+  background-color: $indigo-3;
+}
+.container{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.puzzle-game{
+  width: 25rem;
+  position: relative;
+}
+.cell,.empty{
+  width: 8rem;
+  height: 8rem;
+  position: absolute;
+  transition: .650s all;
+}
+.cell:not(.empty){
+  background-color: red;
+}
