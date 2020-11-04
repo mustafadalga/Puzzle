@@ -1,7 +1,10 @@
 import { createStore } from "vuex";
+import levels from '@/assets/json/levels.json'
 
 export default createStore({
-  state: {},
+  state: {
+    levels:levels
+  },
   mutations: {},
   actions: {},
   modules: {}

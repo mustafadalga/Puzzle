@@ -1,10 +1,31 @@
 <template>
   <div class="container">
-    <div class="puzzle-game">
-      <template  v-for="cell in cells" :key="cell.index">
-        <div class="cell" :class="cell.class" :data-row="cell.row" :data-col="cell.col" :style="cell.style" @click="selectCell($event)">
-        </div>
-      </template>
+    <div class="game-status-wrap">
+      <div class="game-status">
+        <h5>Level</h5>
+        <span >{{  levelNo+1 }}</span>
+      </div>
+      <div class="game-status">
+        <h5>Score</h5>
+        <span >11</span>
+      </div>
+      <div class="game-status">
+        <h5>Score</h5>
+        <span >11</span>
+      </div>
+      <div class="game-status">
+        <h5>Score</h5>
+        <span >11</span>
+      </div>
+    </div>
+    <div class="puzzle-wrapper">
+      <div class="puzzle">
+        <template  v-for="cell in cells" :key="cell.index">
+          <div class="cell" ref="cell" :class="cell.class" :data-src="cell.src" :data-index="cell.index" :data-row="cell.row" :data-col="cell.col" :style="setflexBasis" @click="selectCell($event)">
+            <img :src="cell.src">
+          </div>
+        </template>
+      </div>
     </div>
   </div>
 </template>
@@ -15,29 +36,46 @@ export default {
   name: "App",
   data(){
     return{
-      moveStatus:false,
       cells:[],
       levels:levels,
-      levelNo:0
+      levelNo:5,
+      levelImgCount:0,
+      flexBasis:0,
+      cellLength:0,
+      colLength:0,
     }
   },
   components: {
   },
   created() {
+    this.setLevelData()
     this.setCells();
   },
+  computed:{
+    setflexBasis(){
+      return {'flex-basis':'calc('+this.flexBasis+'% - .3rem)'}
+    },
+  },
+  mounted() {
+  },
   methods:{
-    getLevelImg(){
-      return Math.floor(Math.random() * 6)
+    setLevelData(){
+      let level=this.levels[this.levelNo]
+      this.cellLength=level.cellLength
+      this.colLength=level.colLength
+      this.flexBasis=level.flexBasis
+      this.levelImgCount=level.imgCount
+    },
+    getRandomImg(){
+      return Math.floor(Math.random() * this.levelImgCount)
     },
     getImgUrl(pic) {
       return require(`./assets/img/${pic}`)
     },
     createShuffleList(){
       let shuffleList=[];
-      let cellLength=this.levels[0].cellLength
-      while (shuffleList.length!==cellLength){
-        let index = Math.floor(Math.random() * cellLength);
+      while (shuffleList.length!==this.cellLength){
+        let index = Math.floor(Math.random() * this.cellLength);
         let count = shuffleList.find(item => item === index);
         if (count==undefined){
           shuffleList.push(index);
@@ -47,90 +85,67 @@ export default {
     },
     setCells(){
       let row=0,col=0;
-      let levelImg=this.getLevelImg()+1
-      this.createShuffleList().forEach((cell,index)=>{
+      let levelImg=this.getRandomImg()+1
+       this.createShuffleList().forEach((cell,index)=>{
         this.cells[index]={
+          'index':cell,
           'row':row+1,
           'col':col+1,
-          'style':{
-            'left':`${col*8.5}rem`,
-            'top':`${row*8.5}rem`,
-          }
         }
         col++;
-        if ((index+1)%3===0){
+        if ((index+1)%this.colLength===0){
           row++;
           col=0;
         }
-        if (cell===0){
+        if (cell===this.cellLength-1){
           this.cells[index]['class']='empty';
         }else{
-          this.cells[index].style.background='url('+this.getImgUrl(`level${(this.levelNo+1)+'/picture'+levelImg+'/'+(cell+1)}.jpg`)+') no-repeat center/cover';
+          this.cells[index].src=this.getImgUrl(`level${(this.levelNo+1)+'/picture'+levelImg+'/'+(cell+1)}.jpg`);
         }
       });
     },
-    whichTransitionEvent(){
-      let t,el = document.createElement("fakeelement");
-
-      let transitions = {
-        "transition"      : "transitionend",
-        "OTransition"     : "oTransitionEnd",
-        "MozTransition"   : "transitionend",
-        "WebkitTransition": "webkitTransitionEnd"
-      }
-      for (t in transitions){
-        if (el.style[t] !== undefined){
-          return transitions[t];
-        }
-      }
-    },
     selectCell(event){
-      console.log(event.target)
-      if (!this.checkCellLocationDiff(event.target)) return;
-      console.log(111)
-      if (this.moveStatus) return ;
-
-      this.moveStatus=true;
-
-      event.target.addEventListener(this.whichTransitionEvent(), ()=>this.moveStatus=false);
-      this.moveCard(event.target)
+      let cell=event.target.parentNode
+      if (!this.checkCellLocationDiff(cell)) return;
+      this.moveCard(cell)
     },
     getEmptyCellAttr(){
       return [this.getEmptyCell().getAttribute('data-row'),this.getEmptyCell().getAttribute('data-col')];
     },
-    getEmptyCellPosition(){
-      let emptyCell= this.getEmptyCell()
-      return [emptyCell.offsetTop,emptyCell.offsetLeft]
-    },
     getEmptyCell(){
       return [...document.querySelectorAll('.cell')].find(cell => cell.classList.contains('empty'))
-    },
-    getActiveCellPosition(cell){
-      return [cell.offsetTop,cell.offsetLeft]
     },
     getActiveCellAttr(cell){
       return [cell.getAttribute('data-row'),cell.getAttribute('data-col')];
     },
-    changeCellLocation(activeCell){
-      let emptyCell=this.getEmptyCell();
-      let [emptyTop,emptyLeft]=this.getEmptyCellPosition();
-      let [cellTop,cellLeft]=this.getActiveCellPosition(activeCell)
-      activeCell.style.left=`${emptyLeft}px`;
-      activeCell.style.top=`${emptyTop}px`;
-      emptyCell.style.left=`${cellLeft}px`;
-      emptyCell.style.top=`${cellTop}px`;
+    swapCellIndex(activeCell){
+
+      let activeCellNo=parseInt(activeCell.getAttribute('data-index'));
+      let emptyCellNo=parseInt(this.getEmptyCell().getAttribute('data-index'));
+      console.log("No:",activeCellNo,emptyCellNo)
+
+      let activeCellIndex=this.cells.findIndex(cell=>cell.index===activeCellNo)
+      let emptyCellIndex=this.cells.findIndex(cell=>cell.index===emptyCellNo)
+      console.log("Dizi index:",activeCellIndex,emptyCellIndex)
+
+      console.log("Dizi 1",this.cells)
+
+      this.cells[activeCellIndex].index=emptyCellNo
+      this.cells[emptyCellIndex].index=activeCellNo
+
+
+      this.cells[emptyCellIndex].src=this.cells[activeCellIndex].src
+      this.cells[emptyCellIndex].class=""
+      this.cells[activeCellIndex].class="empty"
+      this.cells[activeCellIndex].src=""
+      this.cells.sort((a,b) => (a.index > b.index) ? 1 : ((b.index > a.index) ? -1 : 0));
+      console.log("Dizi 2",this.cells)
     },
+
     changeCellAttr(activeCell){
-      let emptyCell=this.getEmptyCell()
-      let [emptyRow,emptyCol]=this.getEmptyCellAttr()
-      let [activeRow,activeCol]=this.getActiveCellAttr(activeCell)
-      activeCell.setAttribute('data-row',emptyRow)
-      activeCell.setAttribute('data-col',emptyCol)
-      emptyCell.setAttribute('data-row',activeRow)
-      emptyCell.setAttribute('data-col',activeCol)
+      this.swapCellIndex(activeCell)
     },
     moveCard(activeCell){
-      this.changeCellLocation(activeCell)
       this.changeCellAttr(activeCell)
     },
     calcCellDiff(activeCell){

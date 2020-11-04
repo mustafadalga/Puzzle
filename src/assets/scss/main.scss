@@ -1,4 +1,5 @@
 $indigo-3:#3d5afe;
+$bs-sm:0 1px 6px rgba(0, 0, 0, 0.75);
 *,*:before,*:after{
   margin: 0;
   padding: 0;
@@ -15,20 +16,72 @@ body{
   background-color: $indigo-3;
 }
 .container{
+  width: 100%;
+  max-width: 120rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+.puzzle-wrapper{
   display: flex;
-  align-items: center;
   justify-content: center;
 }
-.puzzle-game{
-  width: 25rem;
-  position: relative;
+.puzzle{
+  width: 100%;
+  max-width: 55rem;
+  box-shadow: $bs-sm;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  grid-gap: .3rem;
+  padding: 1rem;
 }
-.cell,.empty{
-  width: 8rem;
-  height: 8rem;
-  position: absolute;
-  transition: .650s all;
+.cell{
+  flex: 0 1 calc(20% - .3rem);
 }
 .cell:not(.empty){
-  background-color: red;
+  img{
+    //box-shadow: $bs-sm;
+  }
+}
+.game-status-wrap{
+  margin:1rem 0 2rem;
+  display: flex;
+  grid-gap: 1.5rem;
+  justify-content: center;
+  font-size: 2rem;
+}
+.border-violet{
+  border: 3px solid rgba(213, 0, 249,.5);
+}
+.game-status{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  span{
+    width:10rem;
+    margin-top: .5rem;
+    text-align: center;
+    border-radius: .6rem;
+    font-size: 2.5rem;
+    box-shadow:$bs-sm;
+  }
+}
+@media screen and (max-width: 600px){
+  .container{
+    display: flex;
+    flex-direction: column;
+  }
+  .puzzle-wrapper{
+    order: 1;
+    margin-top: 2.5rem;
+  }
+  .game-status-wrap{
+    order: 2;
+    margin: 1.5rem 0 0;
+    flex-wrap: wrap;
+  }
+  .game-status{
+    flex-basis: 40%;
+  }
 }
