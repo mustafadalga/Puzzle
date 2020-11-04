@@ -1,8 +1,38 @@
 [
   {
-    "cellLength": 9
+    "cellLength": 9,
+    "colLength": 3,
+    "flexBasis":32,
+    "imgCount": 6
   },
   {
-  "cellLength": 9
-}
+    "cellLength": 12,
+    "colLength": 4,
+    "flexBasis":24,
+    "imgCount": 6
+  },
+  {
+    "cellLength": 15,
+    "colLength": 5,
+    "flexBasis":20,
+    "imgCount": 6
+  },
+  {
+    "cellLength": 16,
+    "colLength": 4,
+    "flexBasis":24,
+    "imgCount": 6
+  },
+  {
+    "cellLength": 20,
+    "colLength": 5,
+    "flexBasis":20,
+    "imgCount": 6
+  },
+  {
+    "cellLength": 25,
+    "colLength": 5,
+    "flexBasis":20,
+    "imgCount": 1
+  }
 ]
