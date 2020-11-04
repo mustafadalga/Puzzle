@@ -6,16 +6,12 @@
         <span >{{  levelNo+1 }}</span>
       </div>
       <div class="game-status">
-        <h5>Score</h5>
+        <h5>Moving</h5>
         <span >11</span>
       </div>
       <div class="game-status">
-        <h5>Score</h5>
-        <span >11</span>
-      </div>
-      <div class="game-status">
-        <h5>Score</h5>
-        <span >11</span>
+        <h5>Time</h5>
+        <span >{{ getTime }}</span>
       </div>
     </div>
     <div class="puzzle-wrapper">
@@ -44,6 +40,13 @@ export default {
       cellLength:0,
       colLength:0,
       correctCellSorting:[],
+      timerSetInterval:null,
+      timer: {
+        second:0,
+        minute:0,
+        hour:0
+      },
+      movingCount:0,
     }
   },
   components: {
@@ -56,11 +59,37 @@ export default {
     setflexBasis(){
       return {'flex-basis':'calc('+this.flexBasis+'% - .3rem)'}
     },
+    getTime(){
+      let second=this.timer.second > 9 ? this.timer.second : `0${this.timer.second}`
+      let minute=this.timer.minute > 9 ? this.timer.minute : `0${this.timer.minute}`
+      let hour=this.timer.hour > 9 ? this.timer.hour : `0${this.timer.hour}`
+      return `${hour}:${minute}:${second}`
+    }
   },
   mounted() {
-    this.createCorrectCellOrder()
+    this.createCorrectCellOrder();
+    this.startTimer();
   },
   methods:{
+    startTimer(){
+      this.timerSetInterval=setInterval(()=> {
+        this.timer.second++
+        if (this.timer.second===60){
+          this.timer.second=0
+          this.timer.minute++
+        }
+        if (this.timer.minute===60){
+          this.timer.hour++;
+          this.timer.minute=0
+          this.timer.second=0
+        }
+        if (this.timer.hour===24){
+          this.timer.hour=0;
+          this.timer.minute=0
+          this.timer.second=0
+        }
+      },1000)
+    },
     setLevelData(){
       let level=this.levels[this.levelNo]
       this.cellLength=level.cellLength
@@ -149,7 +178,6 @@ export default {
       this.cells[activeCellIndex].src=""
       this.cells.sort((a,b) => (a.index > b.index) ? 1 : ((b.index > a.index) ? -1 : 0));
       console.log(this.checkCellOrder())
-
     },
 
     changeCellAttr(activeCell){
