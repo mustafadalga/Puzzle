@@ -7,7 +7,7 @@
       </div>
       <div class="game-status">
         <h5>Moving</h5>
-        <span >11</span>
+        <span >{{ movesCount }}</span>
       </div>
       <div class="game-status">
         <h5>Time</h5>
@@ -22,12 +22,16 @@
           </div>
         </template>
       </div>
+
     </div>
+    <modal/>
+
   </div>
 </template>
 
 <script>
 import levels from '@/assets/json/levels.json'
+import modal from '@/components/Modal'
 export default {
   name: "App",
   data(){
@@ -46,10 +50,11 @@ export default {
         minute:0,
         hour:0
       },
-      movingCount:0,
+      movesCount:0,
     }
   },
   components: {
+    modal
   },
   created() {
     this.setLevelData()
@@ -142,6 +147,7 @@ export default {
       let cell=event.target.parentNode
       if (!this.checkCellLocationDiff(cell)) return;
       this.moveCard(cell)
+      this.movesCount++;
     },
     getEmptyCellAttr(){
       return [this.getEmptyCell().getAttribute('data-row'),this.getEmptyCell().getAttribute('data-col')];
@@ -165,8 +171,6 @@ export default {
 
       let activeCellNo=parseInt(activeCell.getAttribute('data-index'));
       let emptyCellNo=parseInt(this.getEmptyCell().getAttribute('data-index'));
-      console.log("No:",activeCellNo,emptyCellNo)
-
       let activeCellIndex=this.cells.findIndex(cell=>cell.index===activeCellNo)
       let emptyCellIndex=this.cells.findIndex(cell=>cell.index===emptyCellNo)
 
@@ -176,7 +180,7 @@ export default {
       this.cells[emptyCellIndex].class=""
       this.cells[activeCellIndex].class="empty"
       this.cells[activeCellIndex].src=""
-      this.cells.sort((a,b) => (a.index > b.index) ? 1 : ((b.index > a.index) ? -1 : 0));
+     // this.cells.sort((a,b) => (a.index > b.index) ? 1 : ((b.index > a.index) ? -1 : 0));
       console.log(this.checkCellOrder())
     },
 

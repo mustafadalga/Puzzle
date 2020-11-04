@@ -1,5 +1,11 @@
 $indigo-3:#3d5afe;
+$white:#ffffff;
+$black:#0c0d0e;
+$silver-rand:#bbc0c4;
 $bs-sm:0 1px 6px rgba(0, 0, 0, 0.75);
+$bs-md:0 8px 24px rgba(0,0,0,0.75);
+
+
 *,*:before,*:after{
   margin: 0;
   padding: 0;
@@ -14,6 +20,7 @@ html{
 }
 body{
   background-color: $indigo-3;
+  color: $white;
 }
 .container{
   width: 100%;
@@ -51,8 +58,8 @@ body{
   justify-content: center;
   font-size: 2rem;
 }
-.border-violet{
-  border: 3px solid rgba(213, 0, 249,.5);
+.border-indigo{
+  border: 3px solid rgba(61, 90, 254, .5);
 }
 .game-status{
   display: flex;
@@ -84,4 +91,93 @@ body{
   .game-status{
     flex-basis: 40%;
   }
+}
+
+
+/*
+/* Modal */
+.modal{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: all .3s ease-out;
+  &.open{
+    visibility: visible;
+    opacity: 1;
+    .modal-content{
+      transform: translateY(0);
+    }
+  }
+}
+.modal-content{
+  width: 80%;
+  max-width: 100rem;
+  margin: 8rem auto 0;
+  border-radius: .6rem;
+  background-color:$indigo-3;
+  border: .6rem solid $white;
+  box-shadow: $bs-md;
+  transition: all .3s ease-out;
+  transform: translate(0,-100rem);
+}
+.modal-header{
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-title{
+  font-size: 2rem;
+  font-weight: 500;
+}
+.close{
+  cursor: pointer;
+  font-size: 3rem;
+}
+.modal-body{
+  padding: 2rem 1rem;
+  border-top: 1px solid $silver-rand;
+  border-bottom: 1px solid $silver-rand;
+  font-size: 2rem;
+  text-align: center;
+  p{
+    padding:3rem 5rem;
+
+  }
+}
+.modal-footer{
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+}
+.btn{
+  padding: 1rem;
+  outline: none;
+  border: none;
+  text-align: center;
+  font-size: 1.5rem;
+  border-radius:.3rem;
+  transition: all 0.5s;
+  background-color:$white;
+  color: $indigo-3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: $bs-sm;
+  &:hover{
+    .btn-arrow{
+      padding-left: 1rem;
+    }
+  }
+}
+.btn-arrow{
+  width: 2.5rem;
+  transition: all .3s ease-in-out;
 }
