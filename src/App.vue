@@ -38,11 +38,12 @@ export default {
     return{
       cells:[],
       levels:levels,
-      levelNo:5,
+      levelNo:0,
       levelImgCount:0,
       flexBasis:0,
       cellLength:0,
       colLength:0,
+      correctCellSorting:[],
     }
   },
   components: {
@@ -57,6 +58,7 @@ export default {
     },
   },
   mounted() {
+    this.createCorrectCellOrder()
   },
   methods:{
     setLevelData(){
@@ -65,6 +67,9 @@ export default {
       this.colLength=level.colLength
       this.flexBasis=level.flexBasis
       this.levelImgCount=level.imgCount
+    },
+    createCorrectCellOrder(){
+      this.correctCellSorting=[...Array(this.cellLength).keys()]
     },
     getRandomImg(){
       return Math.floor(Math.random() * this.levelImgCount)
@@ -118,6 +123,15 @@ export default {
     getActiveCellAttr(cell){
       return [cell.getAttribute('data-row'),cell.getAttribute('data-col')];
     },
+    checkCellOrder(){
+      let cellOrder=this.cells.map(cell=>cell.index)
+      console.log(cellOrder)
+      if (JSON.stringify(cellOrder) === JSON.stringify(this.correctCellSorting)){
+        return true;
+      }else{
+        return false;
+      }
+    },
     swapCellIndex(activeCell){
 
       let activeCellNo=parseInt(activeCell.getAttribute('data-index'));
@@ -126,20 +140,16 @@ export default {
 
       let activeCellIndex=this.cells.findIndex(cell=>cell.index===activeCellNo)
       let emptyCellIndex=this.cells.findIndex(cell=>cell.index===emptyCellNo)
-      console.log("Dizi index:",activeCellIndex,emptyCellIndex)
-
-      console.log("Dizi 1",this.cells)
 
       this.cells[activeCellIndex].index=emptyCellNo
       this.cells[emptyCellIndex].index=activeCellNo
-
-
       this.cells[emptyCellIndex].src=this.cells[activeCellIndex].src
       this.cells[emptyCellIndex].class=""
       this.cells[activeCellIndex].class="empty"
       this.cells[activeCellIndex].src=""
       this.cells.sort((a,b) => (a.index > b.index) ? 1 : ((b.index > a.index) ? -1 : 0));
-      console.log("Dizi 2",this.cells)
+      console.log(this.checkCellOrder())
+
     },
 
     changeCellAttr(activeCell){
