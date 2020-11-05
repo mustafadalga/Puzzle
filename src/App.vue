@@ -3,7 +3,7 @@
     <div class="game-status-wrap">
       <div class="game-status">
         <h5>Level</h5>
-        <span >{{  level.no+1 }}</span>
+        <span >{{  level.no }}</span>
       </div>
       <div class="game-status">
         <h5>Moving</h5>
@@ -15,10 +15,10 @@
       </div>
     </div>
     <div class="puzzle-wrapper">
-      <div class="puzzle">
+      <div class="puzzle" :class="isGameCompleted ? 'game-completed' : ''">
         <transition-group name="flip-list">
         <template  v-for="cell in cells" :key="cell.index">
-          <div class="cell" ref="cell" :class="cell.class" :data-src="cell.src" :data-index="cell.index" :data-row="cell.row" :data-col="cell.col" :style="setflexBasis" @click="selectCell($event)">
+          <div class="cell" ref="cell" :class="cell.class" :data-index="cell.index" :data-row="cell.row" :data-col="cell.col" :style="setflexBasis" @click="selectCell($event)">
             <img :src="cell.src">
           </div>
         </template>
@@ -26,7 +26,7 @@
       </div>
 
     </div>
-    <modal/>
+    <modal :class="modalStatus ? 'open':''" :level="level" :totalLevel="levels.length" @modalToggle="modalToggle" @restartGame="restartGame" @increaseLevel="increaseLevel"/>
 
   </div>
 </template>
@@ -41,7 +41,7 @@ export default {
       cells:[],
       levels:levels,
       level:{
-        no:0,
+        no:1,
         movesCount:0,
         imgIndex:null,
       },
@@ -52,6 +52,8 @@ export default {
       },
       correctCellSorting:[],
       timerSetInterval:null,
+      modalStatus:false,
+      isGameCompleted:false
     }
   },
   components: {
@@ -74,7 +76,7 @@ export default {
     }
   },
   mounted() {
-    this.startTimer();
+  //  this.startTimer();
   },
   methods:{
     startTimer(){
@@ -97,7 +99,7 @@ export default {
       },1000)
     },
     setLevelData(){
-      this.level={...this.level, ...this.levels[this.level.no]}
+      this.level={...this.level, ...this.levels[this.level.no-1]}
       this.level.imgIndex=this.getRandomImg()+1
     },
     createCorrectCellOrder(){
@@ -118,7 +120,14 @@ export default {
           shuffleList.push(index);
         }
       }
-      return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
+      shuffleList=[...Array(this.level.cellLength).keys()]
+      let a=shuffleList[this.level.cellLength-1]
+      let b=shuffleList[this.level.cellLength-2]
+      shuffleList[this.level.cellLength-1]=b
+      shuffleList[this.level.cellLength-2]=a
+      console.log(shuffleList)
+      return shuffleList
+      //return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
     },
     setCells(){
       let row=0,col=0;
@@ -141,22 +150,26 @@ export default {
       });
     },
     getImgUrlFormat(piece){
-      return this.getImgUrl(`level${(this.level.no+1)+'/picture'+this.level.imgIndex+'/'+(piece+1)}.jpg`);
+      return this.getImgUrl(`level${(this.level.no)+'/picture'+this.level.imgIndex+'/'+(piece+1)}.jpg`);
     },
     selectCell(event){
       let cell=event.target.parentNode
       if (!this.checkCellLocationDiff(cell)) return;
-      this.moveCard(cell)
+      this.swapCellIndex(cell)
       this.level.movesCount++;
-    },
-    getEmptyCellAttr(){
-      return [this.getEmptyCell().getAttribute('data-row'),this.getEmptyCell().getAttribute('data-col')];
     },
     getEmptyCell(){
       return [...document.querySelectorAll('.cell')].find(cell => cell.classList.contains('empty'))
     },
-    getActiveCellAttr(cell){
+    getCellPosition(cell){
       return [cell.getAttribute('data-row'),cell.getAttribute('data-col')];
+    },
+    getCellIndexForArray(cell){
+      let attrIndex=this.getCellIndexForImage(cell)
+      return this.cells.findIndex(item=>item.index===attrIndex)
+    },
+    getCellIndexForImage(cell){
+      return parseInt(cell.getAttribute('data-index'));
     },
     checkCellOrder(){
       let cellOrder=this.cells.map(cell=>cell.index)
@@ -168,36 +181,66 @@ export default {
       }
     },
     swapCellIndex(activeCell){
+      let activeCellIndex=this.getCellIndexForArray(activeCell)
+      let emptyCellIndex=this.getCellIndexForArray(this.getEmptyCell())
 
-      let activeCellNo=parseInt(activeCell.getAttribute('data-index'));
-      let emptyCellNo=parseInt(this.getEmptyCell().getAttribute('data-index'));
-      let activeCellIndex=this.cells.findIndex(cell=>cell.index===activeCellNo)
-      let emptyCellIndex=this.cells.findIndex(cell=>cell.index===emptyCellNo)
-
-      this.cells[activeCellIndex].index=emptyCellNo
-      this.cells[emptyCellIndex].index=activeCellNo
+      this.cells[activeCellIndex].index=this.getCellIndexForImage(this.getEmptyCell())
+      this.cells[emptyCellIndex].index=this.getCellIndexForImage(activeCell)
       this.cells[emptyCellIndex].src=this.cells[activeCellIndex].src
       this.cells[emptyCellIndex].class=""
       this.cells[activeCellIndex].class="empty"
       this.cells[activeCellIndex].src=""
-     // this.cells.sort((a,b) => (a.index > b.index) ? 1 : ((b.index > a.index) ? -1 : 0));
-      console.log(this.checkCellOrder())
-    },
-
-    changeCellAttr(activeCell){
-      this.swapCellIndex(activeCell)
-    },
-    moveCard(activeCell){
-      this.changeCellAttr(activeCell)
+      if (this.checkCellOrder()) this.levelCompleted()
     },
     calcCellDiff(activeCell){
-      let [cellRow,cellCol]=this.getActiveCellAttr(activeCell);
-      let [emptyRow,emptyCol]=this.getEmptyCellAttr();
+      let [cellRow,cellCol]=this.getCellPosition(activeCell);
+      let [emptyRow,emptyCol]=this.getCellPosition(this.getEmptyCell());
       return (Math.abs(cellRow-emptyRow)===1 && Math.abs(cellCol-emptyCol)===0) || (Math.abs(cellRow-emptyRow)===0 && Math.abs(cellCol-emptyCol)===1);
     },
     checkCellLocationDiff(cell){
       return this.calcCellDiff((cell)) ? true :false;
     },
+    levelCompleted(){
+      clearInterval(this.timerSetInterval)
+      this.isGameCompleted=true
+      this.level.time=this.getTime
+      setTimeout(()=>{
+     //   this.modalToggle()
+      },1500)
+    },
+    modalToggle(){
+      this.modalStatus=!this.modalStatus
+    },
+    resetLevelData(){
+      this.cells=[]
+      this.level.no=this.level.no===this.levels.length ? 1 :this.level.no
+      this.level.movesCount=0
+      this.level.time=null
+      this.imgIndex=null
+      this.timer={
+        second:0,
+        minute:0,
+        hour:0
+      }
+      this.isGameCompleted=false
+    },
+    restartGame() {
+      this.resetLevelData()
+      this.setLevelData()
+      this.createCorrectCellOrder()
+      this.setCells()
+      this.modalToggle()
+      this.startTimer()
+    },
+    increaseLevel(){
+      this.resetLevelData()
+      this.level.no=this.level.no+1
+      this.setLevelData()
+      this.createCorrectCellOrder()
+      this.setCells()
+      this.modalToggle()
+      this.startTimer()
+    }
   }
 };
 </script>
