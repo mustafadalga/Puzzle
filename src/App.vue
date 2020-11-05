@@ -60,6 +60,7 @@ export default {
     modal
   },
   created() {
+    this.getLocalStorage()
     this.setLevelData()
     this.createCorrectCellOrder();
     this.setCells();
@@ -76,7 +77,8 @@ export default {
     }
   },
   mounted() {
-  //  this.startTimer();
+    this.startTimer();
+
   },
   methods:{
     startTimer(){
@@ -204,8 +206,10 @@ export default {
       clearInterval(this.timerSetInterval)
       this.isGameCompleted=true
       this.level.time=this.getTime
+      this.level.no===this.levels.length ? this.clearStorage() : this.setLocalStorage();
+
       setTimeout(()=>{
-     //   this.modalToggle()
+        this.modalToggle()
       },1500)
     },
     modalToggle(){
@@ -240,8 +244,17 @@ export default {
       this.setCells()
       this.modalToggle()
       this.startTimer()
-    }
-  }
+    },
+    setLocalStorage(){
+      localStorage.setItem('levelNo',this.level.no+1);
+    },
+    getLocalStorage(){
+        this.level.no = parseInt(localStorage.getItem('levelNo')) || this.level.no;
+    },
+    clearStorage(){
+      localStorage.clear();
+    },
+  },
 };
 </script>
 
