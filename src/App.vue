@@ -3,11 +3,11 @@
     <div class="game-status-wrap">
       <div class="game-status">
         <h5>Level</h5>
-        <span >{{  levelNo+1 }}</span>
+        <span >{{  level.no+1 }}</span>
       </div>
       <div class="game-status">
         <h5>Moving</h5>
-        <span >{{ movesCount }}</span>
+        <span >{{ level.movesCount }}</span>
       </div>
       <div class="game-status">
         <h5>Time</h5>
@@ -16,11 +16,13 @@
     </div>
     <div class="puzzle-wrapper">
       <div class="puzzle">
+        <transition-group name="flip-list">
         <template  v-for="cell in cells" :key="cell.index">
           <div class="cell" ref="cell" :class="cell.class" :data-src="cell.src" :data-index="cell.index" :data-row="cell.row" :data-col="cell.col" :style="setflexBasis" @click="selectCell($event)">
             <img :src="cell.src">
           </div>
         </template>
+        </transition-group>
       </div>
 
     </div>
@@ -38,19 +40,18 @@ export default {
     return{
       cells:[],
       levels:levels,
-      levelNo:0,
-      levelImgCount:0,
-      flexBasis:0,
-      cellLength:0,
-      colLength:0,
-      correctCellSorting:[],
-      timerSetInterval:null,
+      level:{
+        no:0,
+        movesCount:0,
+        imgIndex:null,
+      },
       timer: {
         second:0,
         minute:0,
         hour:0
       },
-      movesCount:0,
+      correctCellSorting:[],
+      timerSetInterval:null,
     }
   },
   components: {
@@ -58,11 +59,12 @@ export default {
   },
   created() {
     this.setLevelData()
+    this.createCorrectCellOrder();
     this.setCells();
   },
   computed:{
     setflexBasis(){
-      return {'flex-basis':'calc('+this.flexBasis+'% - .3rem)'}
+      return {'flex-basis':'calc('+this.level.flexBasis+'% - .3rem)'}
     },
     getTime(){
       let second=this.timer.second > 9 ? this.timer.second : `0${this.timer.second}`
@@ -72,7 +74,6 @@ export default {
     }
   },
   mounted() {
-    this.createCorrectCellOrder();
     this.startTimer();
   },
   methods:{
@@ -96,58 +97,57 @@ export default {
       },1000)
     },
     setLevelData(){
-      let level=this.levels[this.levelNo]
-      this.cellLength=level.cellLength
-      this.colLength=level.colLength
-      this.flexBasis=level.flexBasis
-      this.levelImgCount=level.imgCount
+      this.level={...this.level, ...this.levels[this.level.no]}
+      this.level.imgIndex=this.getRandomImg()+1
     },
     createCorrectCellOrder(){
-      this.correctCellSorting=[...Array(this.cellLength).keys()]
+      this.correctCellSorting=[...Array(this.level.cellLength).keys()]
     },
     getRandomImg(){
-      return Math.floor(Math.random() * this.levelImgCount)
+      return Math.floor(Math.random() * this.level.imgCount)
     },
     getImgUrl(pic) {
       return require(`./assets/img/${pic}`)
     },
     createShuffleList(){
       let shuffleList=[];
-      while (shuffleList.length!==this.cellLength){
-        let index = Math.floor(Math.random() * this.cellLength);
-        let count = shuffleList.find(item => item === index);
-        if (count==undefined){
+      while (shuffleList.length!==this.level.cellLength){
+        let index = Math.floor(Math.random() * this.level.cellLength);
+        let item = shuffleList.find(item => item === index);
+        if (item===undefined){
           shuffleList.push(index);
         }
       }
-      return shuffleList
+      return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
     },
     setCells(){
       let row=0,col=0;
-      let levelImg=this.getRandomImg()+1
-       this.createShuffleList().forEach((cell,index)=>{
+      this.createShuffleList().forEach((cell,index)=>{
         this.cells[index]={
           'index':cell,
           'row':row+1,
           'col':col+1,
         }
         col++;
-        if ((index+1)%this.colLength===0){
+        if ((index+1)%this.level.colLength===0){
           row++;
           col=0;
         }
-        if (cell===this.cellLength-1){
+        if (cell===this.level.cellLength-1){
           this.cells[index]['class']='empty';
         }else{
-          this.cells[index].src=this.getImgUrl(`level${(this.levelNo+1)+'/picture'+levelImg+'/'+(cell+1)}.jpg`);
+          this.cells[index].src=this.getImgUrlFormat(cell)
         }
       });
+    },
+    getImgUrlFormat(piece){
+      return this.getImgUrl(`level${(this.level.no+1)+'/picture'+this.level.imgIndex+'/'+(piece+1)}.jpg`);
     },
     selectCell(event){
       let cell=event.target.parentNode
       if (!this.checkCellLocationDiff(cell)) return;
       this.moveCard(cell)
-      this.movesCount++;
+      this.level.movesCount++;
     },
     getEmptyCellAttr(){
       return [this.getEmptyCell().getAttribute('data-row'),this.getEmptyCell().getAttribute('data-col')];
@@ -204,4 +204,7 @@ export default {
 
 <style lang="scss">
 @import "assets/scss/main";
+.flip-list-move {
+  transition: transform 300ms;
+}
 </style>
