@@ -103,12 +103,25 @@ body{
 .cell{
   flex: 0 1 calc(20% - .3rem);
   display: flex;
-}
-.cell:not(.empty){
-  img{
-  //  box-shadow: $bs-sm;
+  &:not(.empty){
+    box-shadow: $bs-sm;
+    &.verified-cell{
+      position: relative;
+      &:after{
+        position: absolute;
+        content: '✔';
+        top: 0rem;
+        right: 0rem;
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: $indigo-3;
+        padding:0rem .3rem;
+        background: $white;
+      }
+    }
   }
 }
+
 .game-status-wrap{
   margin:1rem 0 2rem;
   display: flex;

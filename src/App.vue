@@ -78,7 +78,7 @@ export default {
   },
   mounted() {
     this.startTimer();
-
+    this.checkVerifiedAllCell()
   },
   methods:{
     startTimer(){
@@ -122,13 +122,15 @@ export default {
           shuffleList.push(index);
         }
       }
+      return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
+/*
       shuffleList=[...Array(this.level.cellLength).keys()]
       let a=shuffleList[this.level.cellLength-1]
       let b=shuffleList[this.level.cellLength-2]
       shuffleList[this.level.cellLength-1]=b
       shuffleList[this.level.cellLength-2]=a
       console.log(shuffleList)
-      return shuffleList
+      return shuffleList*/
       //return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
     },
     setCells(){
@@ -145,7 +147,7 @@ export default {
           col=0;
         }
         if (cell===this.level.cellLength-1){
-          this.cells[index]['class']='empty';
+          this.cells[index].class='empty';
         }else{
           this.cells[index].src=this.getImgUrlFormat(cell)
         }
@@ -182,16 +184,34 @@ export default {
         return false;
       }
     },
+    checkVerifiedAllCell(){
+      this.correctCellSorting.forEach(index=>{
+        if(this.cells[index].index===index) this.cells[index].class="verified-cell"
+      })
+    },
+    checkVerifiedCell(cellIndex){
+      if (this.cells[cellIndex].index===this.correctCellSorting[cellIndex]){
+        this.cells[cellIndex].class="verified-cell"
+      }else{
+        this.cells[cellIndex].class=""
+      }
+    },
     swapCellIndex(activeCell){
       let activeCellIndex=this.getCellIndexForArray(activeCell)
       let emptyCellIndex=this.getCellIndexForArray(this.getEmptyCell())
 
       this.cells[activeCellIndex].index=this.getCellIndexForImage(this.getEmptyCell())
       this.cells[emptyCellIndex].index=this.getCellIndexForImage(activeCell)
+
       this.cells[emptyCellIndex].src=this.cells[activeCellIndex].src
-      this.cells[emptyCellIndex].class=""
+      this.checkVerifiedCell(emptyCellIndex)
+
       this.cells[activeCellIndex].class="empty"
       this.cells[activeCellIndex].src=""
+
+
+
+
       if (this.checkCellOrder()) this.levelCompleted()
     },
     calcCellDiff(activeCell){
