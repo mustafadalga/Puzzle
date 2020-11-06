@@ -41,7 +41,7 @@ export default {
       cells:[],
       levels:levels,
       level:{
-        no:1,
+        no:4,
         movesCount:0,
         imgIndex:null,
       },
