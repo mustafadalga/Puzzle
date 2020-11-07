@@ -4,7 +4,7 @@ $black:#0c0d0e;
 $silver-rand:#bbc0c4;
 $bs-sm:0 1px 6px rgba(0, 0, 0, 0.75);
 $bs-md:0 8px 24px rgba(0,0,0,0.75);
-
+$green:#4caf50;
 
 *,*:before,*:after{
   margin: 0;
@@ -145,24 +145,7 @@ body{
     box-shadow:$bs-sm;
   }
 }
-@media screen and (max-width: 600px){
-  .container{
-    display: flex;
-    flex-direction: column;
-  }
-  .puzzle-wrapper{
-    order: 1;
-    margin-top: 2.5rem;
-  }
-  .game-status-wrap{
-    order: 2;
-    margin: 1.5rem 0 0;
-    flex-wrap: wrap;
-  }
-  .game-status{
-    flex-basis: 40%;
-  }
-}
+
 
 
 /*
@@ -251,4 +234,61 @@ body{
 .btn-arrow{
   width: 2.5rem;
   transition: all .3s ease-in-out;
+}
+
+
+.progress-bar{
+  width: 100%;
+  max-width: 55rem;
+  margin:0 auto 2rem;
+  background: $white;
+  border-radius: .6rem;
+  box-shadow: $bs-sm;
+  height: 1.8rem;
+  border: 1px solid $white;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.filled-area{
+  width: 25rem;
+  height: 1.2rem;
+  background: $green;
+  border-radius: inherit;
+  transition: width .5s ease-in-out;
+}
+.progressbar-percent{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  color: $black;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+.flip-list-move {
+  transition: transform 300ms;
+}
+
+@media screen and (max-width: 600px){
+  .container{
+    display: flex;
+    flex-direction: column;
+  }
+  .puzzle-wrapper{
+    order: 1;
+    margin-top: 2.5rem;
+  }
+  .game-status-wrap{
+    order: 2;
+    margin: 1.5rem 0 0;
+    flex-wrap: wrap;
+  }
+  .progress-bar{
+    order: 3;
+    margin-top: 2rem;
+  }
+  .game-status{
+    flex-basis: 40%;
+  }
 }

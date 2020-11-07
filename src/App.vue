@@ -14,6 +14,7 @@
         <span >{{ getTime }}</span>
       </div>
     </div>
+    <progressbar :width="setProgressBarStatus"/>
     <div class="puzzle-wrapper">
       <div class="puzzle" :class="isGameCompleted ? 'game-completed' : ''">
         <transition-group name="flip-list">
@@ -24,9 +25,8 @@
         </template>
         </transition-group>
       </div>
-
     </div>
-    <modal :class="modalStatus ? 'open':''" :level="level" :totalLevel="levels.length" @modalToggle="modalToggle" @restartGame="restartGame" @increaseLevel="increaseLevel"/>
+    <modal :class="modalStatus ? 'open':''" :level="level" :totalLevel="levels.length" @restartGame="restartGame" @increaseLevel="increaseLevel"/>
 
   </div>
 </template>
@@ -34,6 +34,7 @@
 <script>
 import levels from '@/assets/json/levels.json'
 import modal from '@/components/Modal'
+import progressbar from "@/components/ProgressBar";
 export default {
   name: "App",
   data(){
@@ -41,9 +42,10 @@ export default {
       cells:[],
       levels:levels,
       level:{
-        no:4,
+        no:1,
         movesCount:0,
         imgIndex:null,
+        verifiedCells:[]
       },
       timer: {
         second:0,
@@ -57,6 +59,7 @@ export default {
     }
   },
   components: {
+    progressbar,
     modal
   },
   created() {
@@ -69,6 +72,9 @@ export default {
     setflexBasis(){
       return {'flex-basis':'calc('+this.level.flexBasis+'% - .3rem)'}
     },
+    setProgressBarStatus(){
+      return (this.level.verifiedCells.length*100)/this.level.cellLength
+    },
     getTime(){
       let second=this.timer.second > 9 ? this.timer.second : `0${this.timer.second}`
       let minute=this.timer.minute > 9 ? this.timer.minute : `0${this.timer.minute}`
@@ -80,6 +86,7 @@ export default {
     this.startTimer();
     this.checkVerifiedAllCell()
   },
+
   methods:{
     startTimer(){
       this.timerSetInterval=setInterval(()=> {
@@ -122,16 +129,14 @@ export default {
           shuffleList.push(index);
         }
       }
-      return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
-/*
       shuffleList=[...Array(this.level.cellLength).keys()]
       let a=shuffleList[this.level.cellLength-1]
       let b=shuffleList[this.level.cellLength-2]
       shuffleList[this.level.cellLength-1]=b
       shuffleList[this.level.cellLength-2]=a
       console.log(shuffleList)
-      return shuffleList*/
-      //return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
+      return shuffleList
+     // return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
     },
     setCells(){
       let row=0,col=0;
@@ -166,6 +171,7 @@ export default {
       return [...document.querySelectorAll('.cell')].find(cell => cell.classList.contains('empty'))
     },
     getCellPosition(cell){
+      console.log(cell)
       return [cell.getAttribute('data-row'),cell.getAttribute('data-col')];
     },
     getCellIndexForArray(cell){
@@ -186,14 +192,25 @@ export default {
     },
     checkVerifiedAllCell(){
       this.correctCellSorting.forEach(index=>{
-        if(this.cells[index].index===index) this.cells[index].class="verified-cell"
+        if(this.cells[index].index===index){
+          this.cells[index].class=this.cells[index].class ? this.cells[index].class+ ' verified-cell' : 'verified-cell'
+          this.level.verifiedCells.push(index)
+        }
       })
     },
-    checkVerifiedCell(cellIndex){
-      if (this.cells[cellIndex].index===this.correctCellSorting[cellIndex]){
-        this.cells[cellIndex].class="verified-cell"
+    checkVerifiedCell(cellIndexForArray){
+      if (this.cells[cellIndexForArray].index===this.correctCellSorting[cellIndexForArray]){
+        this.cells[cellIndexForArray].class="verified-cell"
+        this.level.verifiedCells.push(this.cells[cellIndexForArray].index)
       }else{
-        this.cells[cellIndex].class=""
+        this.cells[cellIndexForArray].class=""
+        this.level.verifiedCells=this.level.verifiedCells.filter(item=>item!==this.cells[cellIndexForArray].index)
+      }
+
+      if (this.cells[this.cells.length-1].index===this.correctCellSorting[this.correctCellSorting.length-1]){
+        this.level.verifiedCells.push(this.cells[this.cells.length-1].index)
+      }else{
+        this.level.verifiedCells=this.level.verifiedCells.filter(item=>item!==this.correctCellSorting[this.correctCellSorting.length-1])
       }
     },
     swapCellIndex(activeCell){
@@ -208,9 +225,6 @@ export default {
 
       this.cells[activeCellIndex].class="empty"
       this.cells[activeCellIndex].src=""
-
-
-
 
       if (this.checkCellOrder()) this.levelCompleted()
     },
@@ -240,6 +254,7 @@ export default {
       this.level.no=this.level.no===this.levels.length ? 1 :this.level.no
       this.level.movesCount=0
       this.level.time=null
+      this.level.verifiedCells=[]
       this.imgIndex=null
       this.timer={
         second:0,
@@ -253,6 +268,7 @@ export default {
       this.setLevelData()
       this.createCorrectCellOrder()
       this.setCells()
+      this.checkVerifiedAllCell()
       this.modalToggle()
       this.startTimer()
     },
@@ -262,6 +278,7 @@ export default {
       this.setLevelData()
       this.createCorrectCellOrder()
       this.setCells()
+      this.checkVerifiedAllCell()
       this.modalToggle()
       this.startTimer()
     },
@@ -280,7 +297,5 @@ export default {
 
 <style lang="scss">
 @import "assets/scss/main";
-.flip-list-move {
-  transition: transform 300ms;
-}
+
 </style>
