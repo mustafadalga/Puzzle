@@ -1,0 +1,22 @@
+@media screen and (max-width: 600px){
+  .container{
+    display: flex;
+    flex-direction: column;
+  }
+  .puzzle-wrapper{
+    order: 1;
+    margin-top: 2.5rem;
+  }
+  .game-status-wrap{
+    order: 2;
+    margin: 1.5rem 0 0;
+    flex-wrap: wrap;
+  }
+  .progress-bar,.btn-start{
+    order: 3;
+    margin-top: 2rem;
+  }
+  .game-status{
+    flex-basis: 40%;
+  }
+}

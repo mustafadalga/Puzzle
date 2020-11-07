@@ -28,6 +28,9 @@ body{
   margin: 0 auto;
   padding: 0 1rem;
 }
+
+
+
 .puzzle-wrapper{
   display: flex;
   justify-content: center;
@@ -50,7 +53,6 @@ body{
   overflow: hidden;
   &.game-completed{
     animation:border .5s ease-in-out infinite;
-
     /*
     Rotating border animation effect source
     https://codepen.io/Chester/pen/QPoyjN
@@ -99,7 +101,6 @@ body{
   }
 }
 
-
 .cell{
   flex: 0 1 calc(20% - .3rem);
   display: flex;
@@ -146,9 +147,6 @@ body{
   }
 }
 
-
-
-/*
 /* Modal */
 .modal{
   position: fixed;
@@ -255,7 +253,7 @@ body{
   height: 1.2rem;
   background: $green;
   border-radius: inherit;
-  transition: width .5s ease-in-out;
+  transition: width .3s ease-in-out;
 }
 .progressbar-percent{
   position: absolute;
@@ -276,25 +274,6 @@ body{
   transition: transform 300ms;
 }
 
-@media screen and (max-width: 600px){
-  .container{
-    display: flex;
-    flex-direction: column;
-  }
-  .puzzle-wrapper{
-    order: 1;
-    margin-top: 2.5rem;
-  }
-  .game-status-wrap{
-    order: 2;
-    margin: 1.5rem 0 0;
-    flex-wrap: wrap;
-  }
-  .progress-bar,.btn-start{
-    order: 3;
-    margin-top: 2rem;
-  }
-  .game-status{
-    flex-basis: 40%;
-  }
-}
+
+/* Media Queries */
+@import "mediaQueries";

@@ -6,7 +6,7 @@
         <span >{{  level.no }}</span>
       </div>
       <div class="game-status">
-        <h5>Moving</h5>
+        <h5>Moves</h5>
         <span >{{ level.movesCount }}</span>
       </div>
       <div class="game-status">
@@ -93,55 +93,35 @@ export default {
         this.checkVerifiedAllCell()
         this.startTimer();
     },
-    startTimer(){
-      this.timerSetInterval=setInterval(()=> {
-        this.timer.second++
-        if (this.timer.second===60){
-          this.timer.second=0
-          this.timer.minute++
-        }
-        if (this.timer.minute===60){
-          this.timer.hour++;
-          this.timer.minute=0
-          this.timer.second=0
-        }
-        if (this.timer.hour===24){
-          this.timer.hour=0;
-          this.timer.minute=0
-          this.timer.second=0
-        }
-      },1000)
+    restartGame() {
+      this.resetLevelData()
+      this.setLevelData()
+      this.createCorrectCellOrder()
+      this.setCells(false)
+      this.modalToggle()
     },
-    setLevelData(){
-      this.level={...this.level, ...this.levels[this.level.no-1]}
-      this.level.imgIndex=this.getRandomImg()+1
+    increaseLevel(){
+      this.resetLevelData()
+      this.level.no=this.level.no+1
+      this.setLevelData()
+      this.createCorrectCellOrder()
+      this.setCells(false)
+      this.modalToggle()
     },
-    createCorrectCellOrder(){
-      this.correctCellSorting=[...Array(this.level.cellLength).keys()]
-    },
-    getRandomImg(){
-      return Math.floor(Math.random() * this.level.imgCount)
-    },
-    getImgUrl(pic) {
-      return require(`./assets/img/${pic}`)
-    },
-    createShuffleList(){
-      let shuffleList=[];
-      while (shuffleList.length!==this.level.cellLength){
-        let index = Math.floor(Math.random() * this.level.cellLength);
-        let item = shuffleList.find(item => item === index);
-        if (item===undefined){
-          shuffleList.push(index);
-        }
+    resetLevelData(){
+      this.cells=[]
+      this.level.no=this.level.no===this.levels.length ? 1 :this.level.no
+      this.level.movesCount=0
+      this.level.time=null
+      this.level.verifiedCells=[]
+      this.imgIndex=null
+      this.timer={
+        second:0,
+        minute:0,
+        hour:0
       }
-      shuffleList=[...Array(this.level.cellLength).keys()]
-      let a=shuffleList[this.level.cellLength-1]
-      let b=shuffleList[this.level.cellLength-2]
-      shuffleList[this.level.cellLength-1]=b
-      shuffleList[this.level.cellLength-2]=a
-      console.log(shuffleList)
-      return shuffleList
-    //  return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
+      this.isGameStarted=false
+      this.isGameCompleted=false
     },
     setCells(shuffle_status=true){
       let row=0,col=0;
@@ -164,8 +144,16 @@ export default {
         }
       });
     },
-    getImgUrlFormat(piece){
-      return this.getImgUrl(`level${(this.level.no)+'/picture'+this.level.imgIndex+'/'+(piece+1)}.jpg`);
+    createShuffleList(){
+      let shuffleList=[];
+      while (shuffleList.length!==this.level.cellLength){
+        let index = Math.floor(Math.random() * this.level.cellLength);
+        let item = shuffleList.find(item => item === index);
+        if (item===undefined){
+          shuffleList.push(index);
+        }
+      }
+      return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
     },
     selectCell(event){
       let cell=event.target.parentNode
@@ -173,18 +161,28 @@ export default {
       this.swapCellIndex(cell)
       this.level.movesCount++;
     },
-    getEmptyCell(){
-      return [...document.querySelectorAll('.cell')].find(cell => cell.classList.contains('empty'))
+    checkCellLocationDiff(cell){
+      return this.calcCellDiff((cell)) ? true :false;
     },
-    getCellPosition(cell){
-      return [cell.getAttribute('data-row'),cell.getAttribute('data-col')];
+    calcCellDiff(activeCell){
+      let [cellRow,cellCol]=this.getCellPosition(activeCell);
+      let [emptyRow,emptyCol]=this.getCellPosition(this.getEmptyCell());
+      return (Math.abs(cellRow-emptyRow)===1 && Math.abs(cellCol-emptyCol)===0) || (Math.abs(cellRow-emptyRow)===0 && Math.abs(cellCol-emptyCol)===1);
     },
-    getCellIndexForArray(cell){
-      let attrIndex=this.getCellIndexForImage(cell)
-      return this.cells.findIndex(item=>item.index===attrIndex)
-    },
-    getCellIndexForImage(cell){
-      return parseInt(cell.getAttribute('data-index'));
+    swapCellIndex(activeCell){
+      let activeCellIndex=this.getCellIndexForArray(activeCell)
+      let emptyCellIndex=this.getCellIndexForArray(this.getEmptyCell())
+
+      this.cells[activeCellIndex].index=this.getCellIndexForImage(this.getEmptyCell())
+      this.cells[emptyCellIndex].index=this.getCellIndexForImage(activeCell)
+
+      this.cells[emptyCellIndex].src=this.cells[activeCellIndex].src
+      this.checkVerifiedCell(emptyCellIndex)
+
+      this.cells[activeCellIndex].class="empty"
+      this.cells[activeCellIndex].src=""
+
+      if (this.checkCellOrder()) this.levelCompleted()
     },
     checkCellOrder(){
       let cellOrder=this.cells.map(cell=>cell.index)
@@ -194,6 +192,15 @@ export default {
       }else{
         return false;
       }
+    },
+    levelCompleted(){
+      clearInterval(this.timerSetInterval)
+      this.isGameCompleted=true
+      this.level.time=this.getTime
+      this.level.no===this.levels.length ? this.clearStorage() : this.setLocalStorage();
+      setTimeout(()=>{
+        this.modalToggle()
+      },1500)
     },
     checkVerifiedAllCell(){
       this.correctCellSorting.forEach(index=>{
@@ -211,87 +218,71 @@ export default {
         this.cells[cellIndexForArray].class=""
         this.level.verifiedCells=this.level.verifiedCells.filter(item=>item!==this.cells[cellIndexForArray].index)
       }
-
       if (this.cells[this.cells.length-1].index===this.correctCellSorting[this.correctCellSorting.length-1]){
         this.level.verifiedCells.push(this.cells[this.cells.length-1].index)
       }else{
         this.level.verifiedCells=this.level.verifiedCells.filter(item=>item!==this.correctCellSorting[this.correctCellSorting.length-1])
       }
     },
-    swapCellIndex(activeCell){
-      let activeCellIndex=this.getCellIndexForArray(activeCell)
-      let emptyCellIndex=this.getCellIndexForArray(this.getEmptyCell())
-
-      this.cells[activeCellIndex].index=this.getCellIndexForImage(this.getEmptyCell())
-      this.cells[emptyCellIndex].index=this.getCellIndexForImage(activeCell)
-
-      this.cells[emptyCellIndex].src=this.cells[activeCellIndex].src
-      this.checkVerifiedCell(emptyCellIndex)
-
-      this.cells[activeCellIndex].class="empty"
-      this.cells[activeCellIndex].src=""
-
-      if (this.checkCellOrder()) this.levelCompleted()
+    createCorrectCellOrder(){
+      this.correctCellSorting=[...Array(this.level.cellLength).keys()]
     },
-    calcCellDiff(activeCell){
-      let [cellRow,cellCol]=this.getCellPosition(activeCell);
-      let [emptyRow,emptyCol]=this.getCellPosition(this.getEmptyCell());
-      return (Math.abs(cellRow-emptyRow)===1 && Math.abs(cellCol-emptyCol)===0) || (Math.abs(cellRow-emptyRow)===0 && Math.abs(cellCol-emptyCol)===1);
+    getRandomImg(){
+      return Math.floor(Math.random() * this.level.imgCount)
     },
-    checkCellLocationDiff(cell){
-      return this.calcCellDiff((cell)) ? true :false;
+    getImgUrlFormat(piece){
+      return this.getImgUrl(`level${(this.level.no)+'/picture'+this.level.imgIndex+'/'+(piece+1)}.jpg`);
     },
-    levelCompleted(){
-      clearInterval(this.timerSetInterval)
-      this.isGameCompleted=true
-      this.level.time=this.getTime
-      this.level.no===this.levels.length ? this.clearStorage() : this.setLocalStorage();
-
-      setTimeout(()=>{
-        this.modalToggle()
-      },1500)
+    getImgUrl(pic) {
+      return require(`./assets/img/${pic}`)
     },
-    modalToggle(){
-      this.modalStatus=!this.modalStatus
+    getEmptyCell(){
+      return [...document.querySelectorAll('.cell')].find(cell => cell.classList.contains('empty'))
     },
-    resetLevelData(){
-      this.cells=[]
-      this.level.no=this.level.no===this.levels.length ? 1 :this.level.no
-      this.level.movesCount=0
-      this.level.time=null
-      this.level.verifiedCells=[]
-      this.imgIndex=null
-      this.timer={
-        second:0,
-        minute:0,
-        hour:0
-      }
-      this.isGameStarted=false
-      this.isGameCompleted=false
+    getCellPosition(cell){
+      return [cell.getAttribute('data-row'),cell.getAttribute('data-col')];
     },
-    restartGame() {
-      this.resetLevelData()
-      this.setLevelData()
-      this.createCorrectCellOrder()
-      this.setCells(false)
-      this.modalToggle()
+    getCellIndexForArray(cell){
+      let attrIndex=this.getCellIndexForImage(cell)
+      return this.cells.findIndex(item=>item.index===attrIndex)
     },
-    increaseLevel(){
-      this.resetLevelData()
-      this.level.no=this.level.no+1
-      this.setLevelData()
-      this.createCorrectCellOrder()
-      this.setCells(false)
-      this.modalToggle()
+    getCellIndexForImage(cell){
+      return parseInt(cell.getAttribute('data-index'));
+    },
+    getLocalStorage(){
+      this.level.no = parseInt(localStorage.getItem('levelNo')) || this.level.no;
     },
     setLocalStorage(){
       localStorage.setItem('levelNo',this.level.no+1);
     },
-    getLocalStorage(){
-        this.level.no = parseInt(localStorage.getItem('levelNo')) || this.level.no;
+    setLevelData(){
+      this.level={...this.level, ...this.levels[this.level.no-1]}
+      this.level.imgIndex=this.getRandomImg()+1
     },
     clearStorage(){
       localStorage.clear();
+    },
+    startTimer(){
+      this.timerSetInterval=setInterval(()=> {
+        this.timer.second++
+        if (this.timer.second===60){
+          this.timer.second=0
+          this.timer.minute++
+        }
+        if (this.timer.minute===60){
+          this.timer.hour++;
+          this.timer.minute=0
+          this.timer.second=0
+        }
+        if (this.timer.hour===24){
+          this.timer.hour=0;
+          this.timer.minute=0
+          this.timer.second=0
+        }
+      },1000)
+    },
+    modalToggle(){
+      this.modalStatus=!this.modalStatus
     },
   },
 };

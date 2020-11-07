@@ -21,7 +21,7 @@
             <span >{{ level.no }}</span>
           </div>
           <div class="game-status">
-            <h5>Moving</h5>
+            <h5>Moves</h5>
             <span >{{ level.movesCount }}</span>
           </div>
           <div class="game-status">
