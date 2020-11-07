@@ -4,7 +4,6 @@
       <div class="modal-header">
         <h1 class="modal-title" v-if="totalLevel===level.no">Game Completed</h1>
         <h1 class="modal-title" v-else>Level Completed</h1>
-        <div class="close" @click="close">&times;</div>
       </div>
       <div class="modal-body">
         <template v-if="totalLevel===level.no">
@@ -46,10 +45,6 @@ export default {
   name: "Modal",
   props:['level','totalLevel'],
   methods:{
-    close(){
-      // eslint-disable-next-line vue/custom-event-name-casing
-      this.$emit('modalToggle');
-    },
     nextLevel(){
       // eslint-disable-next-line vue/custom-event-name-casing
       this.$emit('increaseLevel');
