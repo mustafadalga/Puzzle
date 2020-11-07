@@ -14,12 +14,13 @@
         <span >{{ getTime }}</span>
       </div>
     </div>
-    <progressbar :width="setProgressBarStatus"/>
+    <button v-if="!isGameStarted" class="btn btn-start" @click="startGame()">Start</button>
+    <progressbar v-else :width="setProgressBarStatus"/>
     <div class="puzzle-wrapper">
       <div class="puzzle" :class="isGameCompleted ? 'game-completed' : ''">
         <transition-group name="flip-list">
         <template  v-for="cell in cells" :key="cell.index">
-          <div class="cell" ref="cell" :class="cell.class" :data-index="cell.index" :data-row="cell.row" :data-col="cell.col" :style="setflexBasis" @click="selectCell($event)">
+          <div class="cell" ref="cell" :class="cell.class" :data-index="cell.index" :data-row="cell.row" :data-col="cell.col" :style="setflexBasis" @click="isGameStarted ? selectCell($event) : null">
             <img :src="cell.src">
           </div>
         </template>
@@ -55,7 +56,8 @@ export default {
       correctCellSorting:[],
       timerSetInterval:null,
       modalStatus:false,
-      isGameCompleted:false
+      isGameCompleted:false,
+      isGameStarted:false,
     }
   },
   components: {
@@ -66,7 +68,6 @@ export default {
     this.getLocalStorage()
     this.setLevelData()
     this.createCorrectCellOrder();
-    this.setCells();
   },
   computed:{
     setflexBasis(){
@@ -83,11 +84,15 @@ export default {
     }
   },
   mounted() {
-    this.startTimer();
-    this.checkVerifiedAllCell()
+    this.setCells(false);
   },
-
   methods:{
+    startGame(){
+        this.isGameStarted=true
+        this.setCells();
+        this.checkVerifiedAllCell()
+        this.startTimer();
+    },
     startTimer(){
       this.timerSetInterval=setInterval(()=> {
         this.timer.second++
@@ -136,11 +141,12 @@ export default {
       shuffleList[this.level.cellLength-2]=a
       console.log(shuffleList)
       return shuffleList
-     // return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
+    //  return JSON.stringify(shuffleList)===JSON.stringify(this.correctCellSorting) ? this.createShuffleList() : shuffleList
     },
-    setCells(){
+    setCells(shuffle_status=true){
       let row=0,col=0;
-      this.createShuffleList().forEach((cell,index)=>{
+      let activeList=shuffle_status ? this.createShuffleList() : this.correctCellSorting
+      activeList.forEach((cell,index)=>{
         this.cells[index]={
           'index':cell,
           'row':row+1,
@@ -171,7 +177,6 @@ export default {
       return [...document.querySelectorAll('.cell')].find(cell => cell.classList.contains('empty'))
     },
     getCellPosition(cell){
-      console.log(cell)
       return [cell.getAttribute('data-row'),cell.getAttribute('data-col')];
     },
     getCellIndexForArray(cell){
@@ -261,26 +266,23 @@ export default {
         minute:0,
         hour:0
       }
+      this.isGameStarted=false
       this.isGameCompleted=false
     },
     restartGame() {
       this.resetLevelData()
       this.setLevelData()
       this.createCorrectCellOrder()
-      this.setCells()
-      this.checkVerifiedAllCell()
+      this.setCells(false)
       this.modalToggle()
-      this.startTimer()
     },
     increaseLevel(){
       this.resetLevelData()
       this.level.no=this.level.no+1
       this.setLevelData()
       this.createCorrectCellOrder()
-      this.setCells()
-      this.checkVerifiedAllCell()
+      this.setCells(false)
       this.modalToggle()
-      this.startTimer()
     },
     setLocalStorage(){
       localStorage.setItem('levelNo',this.level.no+1);

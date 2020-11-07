@@ -266,6 +266,12 @@ body{
   font-size: 1.4rem;
   font-weight: bold;
 }
+.btn-start{
+  margin: 0 auto 2rem;
+  padding: 1rem 4rem;
+  border-radius: 6rem;
+}
+
 .flip-list-move {
   transition: transform 300ms;
 }
@@ -284,7 +290,7 @@ body{
     margin: 1.5rem 0 0;
     flex-wrap: wrap;
   }
-  .progress-bar{
+  .progress-bar,.btn-start{
     order: 3;
     margin-top: 2rem;
   }
