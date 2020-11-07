@@ -27,12 +27,12 @@
     "cellLength": 20,
     "colLength": 5,
     "flexBasis":20,
-    "imgCount": 6
+    "imgCount": 4
   },
   {
     "cellLength": 25,
     "colLength": 5,
     "flexBasis":20,
-    "imgCount": 6
+    "imgCount": 4
   }
 ]
