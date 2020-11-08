@@ -186,7 +186,6 @@ export default {
     },
     checkCellOrder(){
       let cellOrder=this.cells.map(cell=>cell.index)
-      console.log(cellOrder)
       if (JSON.stringify(cellOrder) === JSON.stringify(this.correctCellSorting)){
         return true;
       }else{
