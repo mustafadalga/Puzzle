@@ -25,8 +25,8 @@
       "purpose": "maskable"
     }
   ],
-  "name": "puzzle-game",
-  "short_name": "puzzle-game",
+  "name": "Puzzle Game",
+  "short_name": "Puzzle",
   "start_url": "./index.html",
   "theme_color": "#3D5AFE"
 }
