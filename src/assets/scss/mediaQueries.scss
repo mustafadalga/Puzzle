@@ -20,3 +20,14 @@
     flex-basis: 40%;
   }
 }
+@media screen  and (max-width: 450px){
+  .cell{
+    &:not(.empty){
+      &.verified-cell{
+        &:after{
+          font-size: 1rem;
+        }
+      }
+    }
+  }
+}
